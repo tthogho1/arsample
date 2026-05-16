@@ -35,10 +35,10 @@
 
         <a-camera gps-new-camera="gpsMinDistance: 5"></a-camera>
 
-        <!-- ターゲット: 指定座標に看板風オブジェクトを配置 -->
+        <!-- ターゲット: 現在地の近くに看板風オブジェクトを動的配置 -->
         <a-entity
             id="signboard"
-            gps-new-entity-place="latitude: 35.717672; longitude: 139.987239"
+            visible="false"
             look-at="[gps-new-camera]"
             scale="30 30 30">
 
@@ -71,7 +71,8 @@
 
             <!-- サブテキスト (座標) -->
             <a-text
-                value="35.717672, 139.987239"
+                id="signboard-coord"
+                value=""
                 align="center"
                 color="#333333"
                 width="5"
@@ -93,15 +94,41 @@
 
     <script>
         const info = document.getElementById('info');
+        const signboard = document.getElementById('signboard');
+        const coordText = document.getElementById('signboard-coord');
+        let placed = false;
+
+        // 現在地から指定メートル分オフセットした緯度経度を返す
+        function offsetLatLon(lat, lon, northMeters, eastMeters) {
+            const dLat = northMeters / 111320; // 1度 ≒ 111.32 km
+            const dLon = eastMeters / (111320 * Math.cos(lat * Math.PI / 180));
+            return { lat: lat + dLat, lon: lon + dLon };
+        }
 
         if ('geolocation' in navigator) {
             navigator.geolocation.watchPosition(
                 (pos) => {
-                    const lat = pos.coords.latitude.toFixed(6);
-                    const lon = pos.coords.longitude.toFixed(6);
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
                     const acc = pos.coords.accuracy.toFixed(1);
                     info.innerHTML =
-                        `現在地: ${lat}, ${lon}<br>精度: ±${acc}m`;
+                        `現在地: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>精度: ±${acc}m`;
+
+                    // 初回の位置取得時に、現在地の少し北 (約10m先) に看板を配置
+                    if (!placed) {
+                        const target = offsetLatLon(lat, lon, 10, 0);
+                        signboard.setAttribute(
+                            'gps-new-entity-place',
+                            `latitude: ${target.lat}; longitude: ${target.lon}`
+                        );
+                        coordText.setAttribute(
+                            'value',
+                            `${target.lat.toFixed(6)}, ${target.lon.toFixed(6)}`
+                        );
+                        signboard.setAttribute('visible', 'true');
+                        placed = true;
+                        console.log('Signboard placed at', target);
+                    }
                 },
                 (err) => {
                     info.innerText = 'GPS エラー: ' + err.message;
