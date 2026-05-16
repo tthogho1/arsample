@@ -23,20 +23,60 @@
             font-size: 14px;
             border-radius: 6px;
         }
+        #mode-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 9999;
+            background: #0066CC;
+            color: #fff;
+            border: none;
+            padding: 10px 14px;
+            font-family: sans-serif;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+        #mode-toggle:active { background: #004C99; }
     </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
 
     <div id="info">Waiting for GPS...</div>
+    <button id="mode-toggle" type="button">Mode: GPS (10m N)</button>
 
     <a-scene
         vr-mode-ui="enabled: false"
         arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
         renderer="antialias: true; alpha: true">
 
-        <a-camera gps-new-camera="gpsMinDistance: 5"></a-camera>
+        <a-camera gps-new-camera="gpsMinDistance: 5">
+            <!-- Front-facing signboard: child of camera, always 5m in front -->
+            <a-entity
+                id="signboard-front"
+                visible="false"
+                position="0 0 -5"
+                scale="1 1 1">
 
-        <!-- Target: signboard-style object placed dynamically near the user's current location -->
+                <a-plane width="4" height="2.4" color="#FFFFFF"
+                    material="side: double; shader: flat" position="0 0 0"></a-plane>
+
+                <a-entity position="0 0 0.01">
+                    <a-plane width="4.2" height="0.15" color="#0066CC" position="0 1.25 0" material="side: double; shader: flat"></a-plane>
+                    <a-plane width="4.2" height="0.15" color="#0066CC" position="0 -1.25 0" material="side: double; shader: flat"></a-plane>
+                    <a-plane width="0.15" height="2.55" color="#0066CC" position="-2.07 0 0" material="side: double; shader: flat"></a-plane>
+                    <a-plane width="0.15" height="2.55" color="#0066CC" position="2.07 0 0" material="side: double; shader: flat"></a-plane>
+                </a-entity>
+
+                <a-text value="Welcome!" align="center" color="#0066CC"
+                    width="6" position="0 0.6 0.05" material="shader: flat"></a-text>
+                <a-text value="Front mode (5m)" align="center" color="#333333"
+                    width="5" position="0 -0.2 0.05" material="shader: flat"></a-text>
+            </a-entity>
+        </a-camera>
+
+        <!-- GPS-placed signboard (placed dynamically from current location) -->
         <a-entity
             id="signboard"
             visible="false"
@@ -96,9 +136,12 @@
     <script>
         const info = document.getElementById('info');
         const signboard = document.getElementById('signboard');
+        const signboardFront = document.getElementById('signboard-front');
         const coordText = document.getElementById('signboard-coord');
+        const modeBtn = document.getElementById('mode-toggle');
         let placed = false;
         let arReady = false;
+        let mode = 'gps'; // 'gps' | 'front'
 
         // Sanity check: make sure AR.js / A-Frame loaded and the components exist
         window.addEventListener('load', () => {
@@ -119,7 +162,7 @@
             return { lat: lat + dLat, lon: lon + dLon };
         }
 
-        // Place the signboard ~10 m north of the given coordinates
+        // Place the GPS signboard ~10 m north of the given coordinates
         function placeSignboard(lat, lon, sourceLabel) {
             if (placed) return;
             const target = offsetLatLon(lat, lon, 10, 0);
@@ -131,10 +174,30 @@
                 'value',
                 `${target.lat.toFixed(6)}, ${target.lon.toFixed(6)}`
             );
-            signboard.setAttribute('visible', 'true');
             placed = true;
+            applyMode(); // refresh visibility for current mode
             console.log(`Signboard placed (${sourceLabel}) at`, target);
         }
+
+        // Apply the current mode to the two signboards
+        function applyMode() {
+            if (mode === 'gps') {
+                signboard.setAttribute('visible', placed ? 'true' : 'false');
+                signboardFront.setAttribute('visible', 'false');
+                modeBtn.textContent = 'Mode: GPS (10m N)';
+            } else {
+                signboard.setAttribute('visible', 'false');
+                signboardFront.setAttribute('visible', 'true');
+                modeBtn.textContent = 'Mode: Front (5m)';
+            }
+        }
+
+        modeBtn.addEventListener('click', () => {
+            mode = (mode === 'gps') ? 'front' : 'gps';
+            applyMode();
+        });
+
+        applyMode();
 
         if ('geolocation' in navigator) {
             navigator.geolocation.watchPosition(
@@ -152,13 +215,11 @@
                 (err) => {
                     info.innerText = 'GPS error: ' + err.message +
                         ' — falling back to Tokyo Station for demo.';
-                    // Debug fallback so something still shows up on a PC indoors
                     placeSignboard(35.681236, 139.767125, 'fallback');
                 },
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }
             );
 
-            // Safety net: if no GPS fix arrives within 30 s, use the fallback
             setTimeout(() => {
                 if (!placed) {
                     info.innerHTML += '<br>No GPS fix in 30 s — using fallback location.';
