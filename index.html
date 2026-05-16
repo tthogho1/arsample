@@ -35,24 +35,59 @@
 
         <a-camera gps-new-camera="gpsMinDistance: 5"></a-camera>
 
-        <!-- ターゲット: 指定座標 -->
+        <!-- ターゲット: 指定座標に看板風オブジェクトを配置 -->
         <a-entity
-            id="marker-box"
-            material="color: #FF3333; opacity: 0.9"
-            geometry="primitive: box"
+            id="signboard"
             gps-new-entity-place="latitude: 35.717672; longitude: 139.987239"
-            scale="20 20 20">
-        </a-entity>
-
-        <a-text
-            id="marker-label"
-            value="Target: 35.717672, 139.987239"
             look-at="[gps-new-camera]"
-            scale="40 40 40"
-            gps-new-entity-place="latitude: 35.717672; longitude: 139.987239"
-            align="center"
-            color="#FFFFFF">
-        </a-text>
+            scale="30 30 30">
+
+            <!-- 看板本体 (白いパネル) -->
+            <a-plane
+                width="4"
+                height="2.4"
+                color="#FFFFFF"
+                material="side: double; shader: flat"
+                position="0 3 0">
+            </a-plane>
+
+            <!-- 枠 (青いフレーム) -->
+            <a-entity position="0 3 0.01">
+                <a-plane width="4.2" height="0.15" color="#0066CC" position="0 1.25 0" material="side: double; shader: flat"></a-plane>
+                <a-plane width="4.2" height="0.15" color="#0066CC" position="0 -1.25 0" material="side: double; shader: flat"></a-plane>
+                <a-plane width="0.15" height="2.55" color="#0066CC" position="-2.07 0 0" material="side: double; shader: flat"></a-plane>
+                <a-plane width="0.15" height="2.55" color="#0066CC" position="2.07 0 0" material="side: double; shader: flat"></a-plane>
+            </a-entity>
+
+            <!-- タイトル文字 -->
+            <a-text
+                value="Welcome!"
+                align="center"
+                color="#0066CC"
+                width="6"
+                position="0 3.5 0.05"
+                material="shader: flat">
+            </a-text>
+
+            <!-- サブテキスト (座標) -->
+            <a-text
+                value="35.717672, 139.987239"
+                align="center"
+                color="#333333"
+                width="5"
+                position="0 2.6 0.05"
+                material="shader: flat">
+            </a-text>
+
+            <!-- 支柱 -->
+            <a-box
+                color="#8B5A2B"
+                depth="0.2"
+                height="3"
+                width="0.2"
+                position="0 0.5 0">
+            </a-box>
+        </a-entity>
 
     </a-scene>
 
