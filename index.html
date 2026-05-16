@@ -26,7 +26,7 @@
 </head>
 <body style="margin: 0; overflow: hidden;">
 
-    <div id="info">ターゲット: 35.717672, 139.987239</div>
+    <div id="info">Waiting for GPS...</div>
 
     <a-scene
         vr-mode-ui="enabled: false"
@@ -35,14 +35,14 @@
 
         <a-camera gps-new-camera="gpsMinDistance: 5"></a-camera>
 
-        <!-- ターゲット: 現在地の近くに看板風オブジェクトを動的配置 -->
+        <!-- Target: signboard-style object placed dynamically near the user's current location -->
         <a-entity
             id="signboard"
             visible="false"
             look-at="[gps-new-camera]"
             scale="30 30 30">
 
-            <!-- 看板本体 (白いパネル) -->
+            <!-- Signboard body (white panel) -->
             <a-plane
                 width="4"
                 height="2.4"
@@ -51,7 +51,7 @@
                 position="0 3 0">
             </a-plane>
 
-            <!-- 枠 (青いフレーム) -->
+            <!-- Frame (blue border) -->
             <a-entity position="0 3 0.01">
                 <a-plane width="4.2" height="0.15" color="#0066CC" position="0 1.25 0" material="side: double; shader: flat"></a-plane>
                 <a-plane width="4.2" height="0.15" color="#0066CC" position="0 -1.25 0" material="side: double; shader: flat"></a-plane>
@@ -59,7 +59,7 @@
                 <a-plane width="0.15" height="2.55" color="#0066CC" position="2.07 0 0" material="side: double; shader: flat"></a-plane>
             </a-entity>
 
-            <!-- タイトル文字 -->
+            <!-- Title text -->
             <a-text
                 value="Welcome!"
                 align="center"
@@ -69,7 +69,7 @@
                 material="shader: flat">
             </a-text>
 
-            <!-- サブテキスト (座標) -->
+            <!-- Subtext (coordinates) -->
             <a-text
                 id="signboard-coord"
                 value=""
@@ -80,7 +80,7 @@
                 material="shader: flat">
             </a-text>
 
-            <!-- 支柱 -->
+            <!-- Pole -->
             <a-box
                 color="#8B5A2B"
                 depth="0.2"
@@ -98,9 +98,9 @@
         const coordText = document.getElementById('signboard-coord');
         let placed = false;
 
-        // 現在地から指定メートル分オフセットした緯度経度を返す
+        // Return a latitude/longitude offset by the given meters from the source point
         function offsetLatLon(lat, lon, northMeters, eastMeters) {
-            const dLat = northMeters / 111320; // 1度 ≒ 111.32 km
+            const dLat = northMeters / 111320; // 1 degree latitude ~= 111.32 km
             const dLon = eastMeters / (111320 * Math.cos(lat * Math.PI / 180));
             return { lat: lat + dLat, lon: lon + dLon };
         }
@@ -112,9 +112,9 @@
                     const lon = pos.coords.longitude;
                     const acc = pos.coords.accuracy.toFixed(1);
                     info.innerHTML =
-                        `現在地: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>精度: ±${acc}m`;
+                        `Current: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>Accuracy: ±${acc}m`;
 
-                    // 初回の位置取得時に、現在地の少し北 (約10m先) に看板を配置
+                    // On first fix, place the signboard ~10 m north of the user
                     if (!placed) {
                         const target = offsetLatLon(lat, lon, 10, 0);
                         signboard.setAttribute(
@@ -131,12 +131,12 @@
                     }
                 },
                 (err) => {
-                    info.innerText = 'GPS エラー: ' + err.message;
+                    info.innerText = 'GPS error: ' + err.message;
                 },
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }
             );
         } else {
-            info.innerText = 'このブラウザは Geolocation API に対応していません。';
+            info.innerText = 'This browser does not support the Geolocation API.';
         }
 
         window.addEventListener('gps-camera-update-position', (e) => {
