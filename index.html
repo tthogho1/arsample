@@ -26,7 +26,7 @@
 </head>
 <body style="margin: 0; overflow: hidden;">
 
-    <div id="info">GPS 取得中...</div>
+    <div id="info">ターゲット: 35.717672, 139.987239</div>
 
     <a-scene
         vr-mode-ui="enabled: false"
@@ -35,20 +35,21 @@
 
         <a-camera gps-new-camera="gpsMinDistance: 5"></a-camera>
 
-        <!-- ターゲット 1: 東京駅付近 (例) -->
+        <!-- ターゲット: 指定座標 -->
         <a-entity
-            material="color: red"
+            id="marker-box"
+            material="color: #FF3333; opacity: 0.9"
             geometry="primitive: box"
-            gps-new-entity-place="latitude: 35.681236; longitude: 139.767125"
+            gps-new-entity-place="latitude: 35.717672; longitude: 139.987239"
             scale="20 20 20">
         </a-entity>
 
-        <!-- ターゲット 2: 文字表示 -->
         <a-text
-            value="Hello AR!"
+            id="marker-label"
+            value="Target: 35.717672, 139.987239"
             look-at="[gps-new-camera]"
-            scale="50 50 50"
-            gps-new-entity-place="latitude: 35.681500; longitude: 139.767400"
+            scale="40 40 40"
+            gps-new-entity-place="latitude: 35.717672; longitude: 139.987239"
             align="center"
             color="#FFFFFF">
         </a-text>
