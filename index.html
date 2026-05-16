@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1.0">
+    <title>AR.js Location Based AR Sample</title>
+
+    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            padding: 8px 12px;
+            font-family: sans-serif;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body style="margin: 0; overflow: hidden;">
+
+    <div id="info">GPS 取得中...</div>
+
+    <a-scene
+        vr-mode-ui="enabled: false"
+        arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+        renderer="antialias: true; alpha: true">
+
+        <a-camera gps-new-camera="gpsMinDistance: 5"></a-camera>
+
+        <!-- ターゲット 1: 東京駅付近 (例) -->
+        <a-entity
+            material="color: red"
+            geometry="primitive: box"
+            gps-new-entity-place="latitude: 35.681236; longitude: 139.767125"
+            scale="20 20 20">
+        </a-entity>
+
+        <!-- ターゲット 2: 文字表示 -->
+        <a-text
+            value="Hello AR!"
+            look-at="[gps-new-camera]"
+            scale="50 50 50"
+            gps-new-entity-place="latitude: 35.681500; longitude: 139.767400"
+            align="center"
+            color="#FFFFFF">
+        </a-text>
+
+    </a-scene>
+
+    <script>
+        const info = document.getElementById('info');
+
+        if ('geolocation' in navigator) {
+            navigator.geolocation.watchPosition(
+                (pos) => {
+                    const lat = pos.coords.latitude.toFixed(6);
+                    const lon = pos.coords.longitude.toFixed(6);
+                    const acc = pos.coords.accuracy.toFixed(1);
+                    info.innerHTML =
+                        `現在地: ${lat}, ${lon}<br>精度: ±${acc}m`;
+                },
+                (err) => {
+                    info.innerText = 'GPS エラー: ' + err.message;
+                },
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }
+            );
+        } else {
+            info.innerText = 'このブラウザは Geolocation API に対応していません。';
+        }
+
+        window.addEventListener('gps-camera-update-position', (e) => {
+            console.log('Camera position:', e.detail.position);
+        });
+    </script>
+</body>
+</html>
