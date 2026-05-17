@@ -155,6 +155,7 @@
             updateInfo(lastLat, lastLon, lastAccuracy);
         }
         updateArrow();
+        updateSignboardPosition();
     }
 
     function setupOrientation() {
@@ -193,11 +194,10 @@
      * Place (or re-place) the GPS signboard at SIGNBOARD_DISTANCE_M in the
      * currently selected compass direction from the given coordinates.
      *
-     * We compute local meters (east, north) ourselves and assign them
-     * directly to the entity's `position`, bypassing AR.js's gps-new-entity-place
-     * (which depends on the camera's GPS fix and is unreliable indoors).
-     *
-     * A-Frame world axes: +X = east, +Y = up, -Z = north (AR.js convention).
+     * The signboard is a child of the camera, so we keep updating its local
+     * position based on (target bearing - current heading) so it stays in
+     * the correct world direction even though the camera itself doesn't
+     * rotate with the device.
      */
     function placeSignboard(lat, lon, sourceLabel) {
         lastLat = lat;
@@ -207,8 +207,8 @@
         const eastMeters = vec.east * SIGNBOARD_DISTANCE_M;
         const northMeters = vec.north * SIGNBOARD_DISTANCE_M;
 
-        // Place in local AR space: +X east, -Z north
-        signboardGps.setAttribute('position', `${eastMeters} 0 ${-northMeters}`);
+        // Drop ~camera height (about -1.6 m) so the signboard's ground is on the floor
+        signboardGps.object3D.position.y = -1.6;
 
         // For info display only: also record the equivalent lat/lon
         const target = offsetLatLon(lat, lon, northMeters, eastMeters);
@@ -220,8 +220,33 @@
         signLon = target.lon;
         placed = true;
         applyMode();
+        updateSignboardPosition();
         updateArrow();
-        console.log(`Signboard placed (${sourceLabel}, dir=${direction}) local=`, { eastMeters, northMeters });
+        console.log(`Signboard placed (${sourceLabel}, dir=${direction})`);
+    }
+
+    /**
+     * Recalculate the signboard's local position so that — given the current
+     * compass heading — it sits in the world direction the user picked.
+     *
+     * Target world bearing = absolute compass direction of the signboard.
+     * Local angle = how far to the side of the camera's facing it should appear.
+     */
+    function updateSignboardPosition() {
+        if (!placed || mode !== 'gps') return;
+        if (heading === null) {
+            // No compass yet: keep it straight ahead so we at least show something
+            signboardGps.object3D.position.x = 0;
+            signboardGps.object3D.position.z = -SIGNBOARD_DISTANCE_M;
+            return;
+        }
+        // Target compass bearing from DIRECTION_VECTORS
+        const targetBearings = { N: 0, E: 90, S: 180, W: 270 };
+        const bearing = targetBearings[direction];
+        // Relative to current facing (in radians)
+        const relRad = ((bearing - heading + 540) % 360 - 180) * Math.PI / 180;
+        signboardGps.object3D.position.x = Math.sin(relRad) * SIGNBOARD_DISTANCE_M;
+        signboardGps.object3D.position.z = -Math.cos(relRad) * SIGNBOARD_DISTANCE_M;
     }
 
     /** Show the signboard appropriate for the current mode. */

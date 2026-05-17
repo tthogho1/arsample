@@ -72,41 +72,39 @@
                 <a-text value="Front mode (5m)" align="center" color="#333333"
                         width="5" position="0 -0.2 0.05" material="shader: flat"></a-text>
             </a-entity>
-        </a-camera>
 
-        <!-- GPS-placed signboard: positioned manually in local meters -->
-        <!-- (we bypass gps-new-entity-place because it depends on the camera's GPS fix) -->
-        <a-entity id="signboard"
-                  visible="false"
-                  position="0 0 -50"
-                  rotation="0 0 0"
-                  scale="1 1 1">
-            <!-- Pole: 8 m tall -->
-            <a-box color="#8B5A2B"
-                   width="0.6" depth="0.6" height="8"
-                   position="0 4 0"></a-box>
-            <!-- Panel: 12 m x 7 m, centered at y=11 (very visible from 2nd floor) -->
-            <a-entity id="signboard-panel" position="0 11 0">
-                <!-- Front face -->
-                <a-plane width="12" height="7" color="#FFFFFF"
-                         material="side: double; shader: flat"></a-plane>
-                <a-entity position="0 0 0.02">
-                    <a-plane width="12.5" height="0.4" color="#0066CC" position="0 3.7 0" material="side: double; shader: flat"></a-plane>
-                    <a-plane width="12.5" height="0.4" color="#0066CC" position="0 -3.7 0" material="side: double; shader: flat"></a-plane>
-                    <a-plane width="0.4" height="7.4" color="#0066CC" position="-6.05 0 0" material="side: double; shader: flat"></a-plane>
-                    <a-plane width="0.4" height="7.4" color="#0066CC" position="6.05 0 0" material="side: double; shader: flat"></a-plane>
+            <!-- GPS signboard: child of camera, positioned by compass heading -->
+            <!-- (we recalculate its local position based on (target bearing - heading)) -->
+            <a-entity id="signboard"
+                      visible="false"
+                      position="0 0 -50"
+                      scale="1 1 1">
+                <!-- Pole: 8 m tall -->
+                <a-box color="#8B5A2B"
+                       width="0.6" depth="0.6" height="8"
+                       position="0 4 0"></a-box>
+                <!-- Panel: 12 m x 7 m, centered at y=11 -->
+                <a-entity id="signboard-panel" position="0 11 0">
+                    <a-plane width="12" height="7" color="#FFFFFF"
+                             material="side: double; shader: flat"></a-plane>
+                    <a-entity position="0 0 0.02">
+                        <a-plane width="12.5" height="0.4" color="#0066CC" position="0 3.7 0" material="side: double; shader: flat"></a-plane>
+                        <a-plane width="12.5" height="0.4" color="#0066CC" position="0 -3.7 0" material="side: double; shader: flat"></a-plane>
+                        <a-plane width="0.4" height="7.4" color="#0066CC" position="-6.05 0 0" material="side: double; shader: flat"></a-plane>
+                        <a-plane width="0.4" height="7.4" color="#0066CC" position="6.05 0 0" material="side: double; shader: flat"></a-plane>
+                    </a-entity>
+                    <a-text value="Welcome!" align="center" color="#0066CC"
+                            width="20" position="0 1.5 0.05" material="shader: flat"></a-text>
+                    <a-text id="signboard-coord"
+                            value=""
+                            align="center"
+                            color="#333333"
+                            width="16"
+                            position="0 -0.5 0.05"
+                            material="shader: flat"></a-text>
                 </a-entity>
-                <a-text value="Welcome!" align="center" color="#0066CC"
-                        width="20" position="0 1.5 0.05" material="shader: flat"></a-text>
-                <a-text id="signboard-coord"
-                        value=""
-                        align="center"
-                        color="#333333"
-                        width="16"
-                        position="0 -0.5 0.05"
-                        material="shader: flat"></a-text>
             </a-entity>
-        </a-entity>
+        </a-camera>
 
     </a-scene>
 
