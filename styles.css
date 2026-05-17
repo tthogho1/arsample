@@ -87,3 +87,34 @@ body {
 .dir-btn:active {
     transform: scale(0.95);
 }
+
+#arrow-wrap {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9998;
+    pointer-events: none;
+    text-align: center;
+    font-family: sans-serif;
+    color: #fff;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+    display: none;
+}
+
+#arrow {
+    font-size: 80px;
+    line-height: 1;
+    transition: transform 0.2s ease-out;
+    color: #ffcc00;
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.9);
+}
+
+#arrow-label {
+    margin-top: 4px;
+    font-size: 14px;
+    background: rgba(0, 0, 0, 0.5);
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+}

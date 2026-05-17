@@ -14,8 +14,14 @@
 <body>
 
     <div id="info">Waiting for GPS...</div>
-    <button id="mode-toggle" type="button">Mode: GPS (10m N)</button>
+    <button id="mode-toggle" type="button">Mode: GPS (50m N)</button>
     <button id="orient-permission" type="button" style="display:none;">Enable Compass</button>
+
+    <!-- Arrow indicator pointing toward the GPS signboard -->
+    <div id="arrow-wrap">
+        <div id="arrow">▲</div>
+        <div id="arrow-label">Look this way</div>
+    </div>
 
     <div id="direction-controls">
         <button type="button" class="dir-btn" data-dir="N">N</button>

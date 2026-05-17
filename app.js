@@ -2,7 +2,7 @@
     'use strict';
 
     // ---- Configuration ---------------------------------------------------
-    const SIGNBOARD_DISTANCE_M = 10;           // GPS mode: distance from the user
+    const SIGNBOARD_DISTANCE_M = 50;           // GPS mode: distance from the user
     const FRONT_DISTANCE_M = 5;                // Front mode: distance in front of camera
     const GPS_TIMEOUT_MS = 27000;              // watchPosition timeout
     const FALLBACK_TIMEOUT_MS = 30000;         // Use fallback location if no fix in this time
@@ -26,6 +26,9 @@
     const modeBtn = document.getElementById('mode-toggle');
     const orientBtn = document.getElementById('orient-permission');
     const dirButtons = document.querySelectorAll('.dir-btn');
+    const arrowWrap = document.getElementById('arrow-wrap');
+    const arrowEl = document.getElementById('arrow');
+    const arrowLabel = document.getElementById('arrow-label');
 
     // ---- State -----------------------------------------------------------
     let placed = false;     // Has the GPS signboard been placed yet?
@@ -79,6 +82,45 @@
         return dirs[Math.round(((deg % 360) / 45)) % 8];
     }
 
+    /** Bearing from (lat1,lon1) to (lat2,lon2) in degrees (0=N, clockwise). */
+    function bearingDeg(lat1, lon1, lat2, lon2) {
+        const toRad = (d) => d * Math.PI / 180;
+        const toDeg = (r) => r * 180 / Math.PI;
+        const dLon = toRad(lon2 - lon1);
+        const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+        const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) -
+                  Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(dLon);
+        return (toDeg(Math.atan2(y, x)) + 360) % 360;
+    }
+
+    /** Coordinates the signboard is currently pinned to. */
+    let signLat = null;
+    let signLon = null;
+
+    /** Update the on-screen arrow to point toward the signboard. */
+    function updateArrow() {
+        if (signLat === null || lastLat === null || mode !== 'gps') {
+            arrowWrap.style.display = 'none';
+            return;
+        }
+        const bearing = bearingDeg(lastLat, lastLon, signLat, signLon);
+        if (heading === null) {
+            // No compass yet: just show the absolute compass direction
+            arrowWrap.style.display = 'block';
+            arrowEl.style.transform = `rotate(${bearing}deg)`;
+            arrowLabel.textContent = `Bearing ${bearing.toFixed(0)}° (${headingToCompass(bearing)})`;
+            return;
+        }
+        // Relative angle: how much to turn right from current facing
+        const relative = ((bearing - heading) + 540) % 360 - 180; // [-180, 180]
+        arrowWrap.style.display = 'block';
+        arrowEl.style.transform = `rotate(${relative}deg)`;
+        const absDeg = Math.abs(relative);
+        arrowLabel.textContent = absDeg < 15
+            ? 'Straight ahead'
+            : `Turn ${relative > 0 ? 'right' : 'left'} ${absDeg.toFixed(0)}°`;
+    }
+
     // ---- Device orientation (iOS permission handling) -------------------
 
     function onDeviceOrientation(e) {
@@ -93,6 +135,7 @@
             // Refresh info text only (no relocation)
             updateInfo(lastLat, lastLon, 0);
         }
+        updateArrow();
     }
 
     function setupOrientation() {
@@ -150,8 +193,11 @@
             'value',
             `${direction} ${SIGNBOARD_DISTANCE_M}m\n${target.lat.toFixed(6)}, ${target.lon.toFixed(6)}`
         );
+        signLat = target.lat;
+        signLon = target.lon;
         placed = true;
         applyMode();
+        updateArrow();
         console.log(`Signboard placed (${sourceLabel}, dir=${direction}) at`, target);
     }
 
@@ -171,6 +217,7 @@
     function toggleMode() {
         mode = (mode === 'gps') ? 'front' : 'gps';
         applyMode();
+        updateArrow();
     }
 
     /** Update the active state highlight on direction buttons. */
@@ -212,6 +259,7 @@
                     // Remember current coords so a direction change can re-place
                     lastLat = latitude;
                     lastLon = longitude;
+                    updateArrow();
                 }
             },
             (err) => {
