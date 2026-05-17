@@ -1,47 +1,17 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1.0">
     <title>AR.js Location Based AR Sample</title>
 
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <!-- Use the location-based build (aframe-ar.js), pinned to a stable AR.js release -->
+    <!-- Location-based AR.js build, pinned to a stable release -->
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
 
-    <style>
-        body { margin: 0; overflow: hidden; }
-        #info {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 9999;
-            background: rgba(0, 0, 0, 0.6);
-            color: #fff;
-            padding: 8px 12px;
-            font-family: sans-serif;
-            font-size: 14px;
-            border-radius: 6px;
-        }
-        #mode-toggle {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            z-index: 9999;
-            background: #0066CC;
-            color: #fff;
-            border: none;
-            padding: 10px 14px;
-            font-family: sans-serif;
-            font-size: 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-        #mode-toggle:active { background: #004C99; }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body style="margin: 0; overflow: hidden;">
+<body>
 
     <div id="info">Waiting for GPS...</div>
     <button id="mode-toggle" type="button">Mode: GPS (10m N)</button>
@@ -51,190 +21,70 @@
         arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
         renderer="antialias: true; alpha: true">
 
+        <!-- Reusable signboard parts -->
+        <a-assets>
+            <a-mixin id="panel"
+                geometry="primitive: plane; width: 4; height: 2.4"
+                material="color: #FFFFFF; side: double; shader: flat"></a-mixin>
+
+            <a-mixin id="frame-h"
+                geometry="primitive: plane; width: 4.2; height: 0.15"
+                material="color: #0066CC; side: double; shader: flat"></a-mixin>
+
+            <a-mixin id="frame-v"
+                geometry="primitive: plane; width: 0.15; height: 2.55"
+                material="color: #0066CC; side: double; shader: flat"></a-mixin>
+
+            <a-mixin id="title-text"
+                text="value: Welcome!; align: center; color: #0066CC; width: 6"
+                material="shader: flat"></a-mixin>
+
+            <a-mixin id="pole"
+                geometry="primitive: box; width: 0.2; height: 3; depth: 0.2"
+                material="color: #8B5A2B"></a-mixin>
+        </a-assets>
+
         <a-camera gps-new-camera="gpsMinDistance: 5">
-            <!-- Front-facing signboard: child of camera, always 5m in front -->
-            <a-entity
-                id="signboard-front"
-                visible="false"
-                position="0 0 -5"
-                scale="1 1 1">
-
-                <a-plane width="4" height="2.4" color="#FFFFFF"
-                    material="side: double; shader: flat" position="0 0 0"></a-plane>
-
+            <!-- Front-facing signboard: child of camera, always in front -->
+            <a-entity id="signboard-front" visible="false" position="0 0 -5">
+                <a-entity mixin="panel" position="0 0 0"></a-entity>
                 <a-entity position="0 0 0.01">
-                    <a-plane width="4.2" height="0.15" color="#0066CC" position="0 1.25 0" material="side: double; shader: flat"></a-plane>
-                    <a-plane width="4.2" height="0.15" color="#0066CC" position="0 -1.25 0" material="side: double; shader: flat"></a-plane>
-                    <a-plane width="0.15" height="2.55" color="#0066CC" position="-2.07 0 0" material="side: double; shader: flat"></a-plane>
-                    <a-plane width="0.15" height="2.55" color="#0066CC" position="2.07 0 0" material="side: double; shader: flat"></a-plane>
+                    <a-entity mixin="frame-h" position="0 1.25 0"></a-entity>
+                    <a-entity mixin="frame-h" position="0 -1.25 0"></a-entity>
+                    <a-entity mixin="frame-v" position="-2.07 0 0"></a-entity>
+                    <a-entity mixin="frame-v" position="2.07 0 0"></a-entity>
                 </a-entity>
-
-                <a-text value="Welcome!" align="center" color="#0066CC"
-                    width="6" position="0 0.6 0.05" material="shader: flat"></a-text>
+                <a-entity mixin="title-text" position="0 0.6 0.05"></a-entity>
                 <a-text value="Front mode (5m)" align="center" color="#333333"
-                    width="5" position="0 -0.2 0.05" material="shader: flat"></a-text>
+                        width="5" position="0 -0.2 0.05" material="shader: flat"></a-text>
             </a-entity>
         </a-camera>
 
-        <!-- GPS-placed signboard (placed dynamically from current location) -->
-        <a-entity
-            id="signboard"
-            visible="false"
-            look-at="[gps-new-camera]"
-            scale="30 30 30">
-
-            <!-- Signboard body (white panel) -->
-            <a-plane
-                width="4"
-                height="2.4"
-                color="#FFFFFF"
-                material="side: double; shader: flat"
-                position="0 3 0">
-            </a-plane>
-
-            <!-- Frame (blue border) -->
+        <!-- GPS-placed signboard (positioned dynamically from current location) -->
+        <a-entity id="signboard"
+                  visible="false"
+                  look-at="[gps-new-camera]"
+                  scale="30 30 30">
+            <a-entity mixin="panel" position="0 3 0"></a-entity>
             <a-entity position="0 3 0.01">
-                <a-plane width="4.2" height="0.15" color="#0066CC" position="0 1.25 0" material="side: double; shader: flat"></a-plane>
-                <a-plane width="4.2" height="0.15" color="#0066CC" position="0 -1.25 0" material="side: double; shader: flat"></a-plane>
-                <a-plane width="0.15" height="2.55" color="#0066CC" position="-2.07 0 0" material="side: double; shader: flat"></a-plane>
-                <a-plane width="0.15" height="2.55" color="#0066CC" position="2.07 0 0" material="side: double; shader: flat"></a-plane>
+                <a-entity mixin="frame-h" position="0 1.25 0"></a-entity>
+                <a-entity mixin="frame-h" position="0 -1.25 0"></a-entity>
+                <a-entity mixin="frame-v" position="-2.07 0 0"></a-entity>
+                <a-entity mixin="frame-v" position="2.07 0 0"></a-entity>
             </a-entity>
-
-            <!-- Title text -->
-            <a-text
-                value="Welcome!"
-                align="center"
-                color="#0066CC"
-                width="6"
-                position="0 3.5 0.05"
-                material="shader: flat">
-            </a-text>
-
-            <!-- Subtext (coordinates) -->
-            <a-text
-                id="signboard-coord"
-                value=""
-                align="center"
-                color="#333333"
-                width="5"
-                position="0 2.6 0.05"
-                material="shader: flat">
-            </a-text>
-
-            <!-- Pole -->
-            <a-box
-                color="#8B5A2B"
-                depth="0.2"
-                height="3"
-                width="0.2"
-                position="0 0.5 0">
-            </a-box>
+            <a-entity mixin="title-text" position="0 3.5 0.05"></a-entity>
+            <a-text id="signboard-coord"
+                    value=""
+                    align="center"
+                    color="#333333"
+                    width="5"
+                    position="0 2.6 0.05"
+                    material="shader: flat"></a-text>
+            <a-entity mixin="pole" position="0 0.5 0"></a-entity>
         </a-entity>
 
     </a-scene>
 
-    <script>
-        const info = document.getElementById('info');
-        const signboard = document.getElementById('signboard');
-        const signboardFront = document.getElementById('signboard-front');
-        const coordText = document.getElementById('signboard-coord');
-        const modeBtn = document.getElementById('mode-toggle');
-        let placed = false;
-        let arReady = false;
-        let mode = 'gps'; // 'gps' | 'front'
-
-        // Sanity check: make sure AR.js / A-Frame loaded and the components exist
-        window.addEventListener('load', () => {
-            const missing = [];
-            if (typeof AFRAME === 'undefined') missing.push('A-Frame');
-            else if (!AFRAME.components['gps-new-camera']) missing.push('AR.js (gps-new-camera)');
-            if (missing.length) {
-                info.innerHTML = 'Failed to load: ' + missing.join(', ') +
-                    '<br>Check the network tab / CDN URLs.';
-                console.error('Missing libraries:', missing);
-            }
-        });
-
-        // Return a latitude/longitude offset by the given meters from the source point
-        function offsetLatLon(lat, lon, northMeters, eastMeters) {
-            const dLat = northMeters / 111320; // 1 degree latitude ~= 111.32 km
-            const dLon = eastMeters / (111320 * Math.cos(lat * Math.PI / 180));
-            return { lat: lat + dLat, lon: lon + dLon };
-        }
-
-        // Place the GPS signboard ~10 m north of the given coordinates
-        function placeSignboard(lat, lon, sourceLabel) {
-            if (placed) return;
-            const target = offsetLatLon(lat, lon, 10, 0);
-            signboard.setAttribute(
-                'gps-new-entity-place',
-                `latitude: ${target.lat}; longitude: ${target.lon}`
-            );
-            coordText.setAttribute(
-                'value',
-                `${target.lat.toFixed(6)}, ${target.lon.toFixed(6)}`
-            );
-            placed = true;
-            applyMode(); // refresh visibility for current mode
-            console.log(`Signboard placed (${sourceLabel}) at`, target);
-        }
-
-        // Apply the current mode to the two signboards
-        function applyMode() {
-            if (mode === 'gps') {
-                signboard.setAttribute('visible', placed ? 'true' : 'false');
-                signboardFront.setAttribute('visible', 'false');
-                modeBtn.textContent = 'Mode: GPS (10m N)';
-            } else {
-                signboard.setAttribute('visible', 'false');
-                signboardFront.setAttribute('visible', 'true');
-                modeBtn.textContent = 'Mode: Front (5m)';
-            }
-        }
-
-        modeBtn.addEventListener('click', () => {
-            mode = (mode === 'gps') ? 'front' : 'gps';
-            applyMode();
-        });
-
-        applyMode();
-
-        if ('geolocation' in navigator) {
-            navigator.geolocation.watchPosition(
-                (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
-                    const acc = pos.coords.accuracy.toFixed(1);
-                    info.innerHTML =
-                        `Current: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>` +
-                        `Accuracy: ±${acc}m` +
-                        (arReady ? '<br>AR ready' : '');
-
-                    placeSignboard(lat, lon, 'GPS');
-                },
-                (err) => {
-                    info.innerText = 'GPS error: ' + err.message +
-                        ' — falling back to Tokyo Station for demo.';
-                    placeSignboard(35.681236, 139.767125, 'fallback');
-                },
-                { enableHighAccuracy: true, maximumAge: 0, timeout: 27000 }
-            );
-
-            setTimeout(() => {
-                if (!placed) {
-                    info.innerHTML += '<br>No GPS fix in 30 s — using fallback location.';
-                    placeSignboard(35.681236, 139.767125, 'timeout-fallback');
-                }
-            }, 30000);
-        } else {
-            info.innerText = 'This browser does not support the Geolocation API.';
-            placeSignboard(35.681236, 139.767125, 'no-geolocation');
-        }
-
-        window.addEventListener('gps-camera-update-position', (e) => {
-            arReady = true;
-            console.log('Camera position:', e.detail.position);
-        });
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
