@@ -69,12 +69,30 @@
         const headingTxt = (heading !== null)
             ? `<br>Heading: ${heading.toFixed(0)}° (${headingToCompass(heading)})`
             : '<br>Heading: N/A (tap "Enable Compass")';
+
+        // 3D debug: positions of camera and signboard in AR world space
+        let dbg = '';
+        const cam = document.querySelector('a-camera');
+        const sb = signboardGps;
+        if (cam && sb && cam.object3D && sb.object3D) {
+            const c = cam.object3D.position;
+            const p = sb.object3D.position;
+            const dx = p.x - c.x;
+            const dy = p.y - c.y;
+            const dz = p.z - c.z;
+            const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+            dbg = `<br>Cam: (${c.x.toFixed(1)}, ${c.y.toFixed(1)}, ${c.z.toFixed(1)})` +
+                  `<br>Sign: (${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)})` +
+                  `<br>Dist: ${dist.toFixed(1)}m`;
+        }
+
         info.innerHTML =
             `Current: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>` +
             `Accuracy: ±${accuracy.toFixed(1)}m` +
             headingTxt +
             `<br>Target: ${direction} ${SIGNBOARD_DISTANCE_M}m` +
-            (arReady ? '<br>AR ready' : '');
+            (arReady ? '<br>AR ready' : '<br>AR not ready') +
+            dbg;
     }
 
     /** Convert compass degrees to N/NE/E/... label. */
@@ -291,7 +309,13 @@
     window.addEventListener('gps-camera-update-position', (e) => {
         arReady = true;
         console.log('Camera position:', e.detail.position);
+        if (lastLat !== null) updateInfo(lastLat, lastLon, lastAccuracy);
     });
+
+    // Periodic refresh so the 3D debug numbers stay live
+    setInterval(() => {
+        if (lastLat !== null) updateInfo(lastLat, lastLon, lastAccuracy);
+    }, 1000);
 
     // Configure front-mode signboard distance from constant
     signboardFront.setAttribute('position', `0 0 ${-FRONT_DISTANCE_M}`);
