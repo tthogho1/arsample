@@ -24,6 +24,7 @@
     const signboardFront = document.getElementById('signboard-front');
     const coordText = document.getElementById('signboard-coord');
     const modeBtn = document.getElementById('mode-toggle');
+    const orientBtn = document.getElementById('orient-permission');
     const dirButtons = document.querySelectorAll('.dir-btn');
 
     // ---- State -----------------------------------------------------------
@@ -33,6 +34,7 @@
     let direction = 'N';    // 'N' | 'E' | 'S' | 'W'
     let lastLat = null;     // Most recent known coordinates (for re-placing)
     let lastLon = null;
+    let heading = null;     // Latest compass heading (degrees)
 
     // ---- Helpers ---------------------------------------------------------
 
@@ -60,10 +62,69 @@
 
     /** Update the top-left info banner. */
     function updateInfo(lat, lon, accuracy) {
+        const headingTxt = (heading !== null)
+            ? `<br>Heading: ${heading.toFixed(0)}° (${headingToCompass(heading)})`
+            : '<br>Heading: N/A (tap "Enable Compass")';
         info.innerHTML =
             `Current: ${lat.toFixed(6)}, ${lon.toFixed(6)}<br>` +
             `Accuracy: ±${accuracy.toFixed(1)}m` +
+            headingTxt +
+            `<br>Target: ${direction} ${SIGNBOARD_DISTANCE_M}m` +
             (arReady ? '<br>AR ready' : '');
+    }
+
+    /** Convert compass degrees to N/NE/E/... label. */
+    function headingToCompass(deg) {
+        const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+        return dirs[Math.round(((deg % 360) / 45)) % 8];
+    }
+
+    // ---- Device orientation (iOS permission handling) -------------------
+
+    function onDeviceOrientation(e) {
+        // iOS provides true heading via webkitCompassHeading (0=N, clockwise)
+        if (typeof e.webkitCompassHeading === 'number') {
+            heading = e.webkitCompassHeading;
+        } else if (typeof e.alpha === 'number') {
+            // Android: alpha is 0=North in many devices but not guaranteed
+            heading = 360 - e.alpha;
+        }
+        if (lastLat !== null && lastLon !== null) {
+            // Refresh info text only (no relocation)
+            updateInfo(lastLat, lastLon, 0);
+        }
+    }
+
+    function setupOrientation() {
+        const needsPermission = (
+            typeof DeviceOrientationEvent !== 'undefined' &&
+            typeof DeviceOrientationEvent.requestPermission === 'function'
+        );
+
+        const enable = () => {
+            window.addEventListener('deviceorientation', onDeviceOrientation, true);
+            window.addEventListener('deviceorientationabsolute', onDeviceOrientation, true);
+            orientBtn.style.display = 'none';
+        };
+
+        if (needsPermission) {
+            // iOS 13+: must be triggered by user gesture
+            orientBtn.style.display = 'block';
+            orientBtn.addEventListener('click', async () => {
+                try {
+                    const res = await DeviceOrientationEvent.requestPermission();
+                    if (res === 'granted') {
+                        enable();
+                    } else {
+                        info.innerHTML += '<br>Compass permission denied.';
+                    }
+                } catch (err) {
+                    info.innerHTML += '<br>Compass error: ' + err.message;
+                }
+            });
+        } else {
+            enable();
+        }
     }
 
     /**
@@ -187,5 +248,6 @@
 
     refreshDirectionButtons();
     applyMode();
+    setupOrientation();
     startGeolocation();
 })();
