@@ -75,33 +75,34 @@
         </a-camera>
 
         <!-- GPS-placed signboard (positioned dynamically from current location) -->
-        <!-- Geometry is in meters; pole stands on the ground, panel at ~5 m height -->
+        <!-- Oversized + elevated so it's visible from a 2nd-floor balcony too -->
         <a-entity id="signboard"
                   visible="false"
-                  look-at="[gps-new-camera]"
+                  rotation="0 0 0"
                   scale="1 1 1">
-            <!-- Pole: 4 m tall, standing on the ground (y=0 to y=4) -->
+            <!-- Pole: 8 m tall -->
             <a-box color="#8B5A2B"
-                   width="0.4" depth="0.4" height="4"
-                   position="0 2 0"></a-box>
-            <!-- Panel: 6 m x 3.6 m, centered at y=6 (top of pole + half panel) -->
-            <a-entity position="0 6 0">
-                <a-plane width="6" height="3.6" color="#FFFFFF"
+                   width="0.6" depth="0.6" height="8"
+                   position="0 4 0"></a-box>
+            <!-- Panel: 12 m x 7 m, centered at y=11 (very visible from 2nd floor) -->
+            <a-entity id="signboard-panel" position="0 11 0">
+                <!-- Front face -->
+                <a-plane width="12" height="7" color="#FFFFFF"
                          material="side: double; shader: flat"></a-plane>
-                <a-entity position="0 0 0.01">
-                    <a-plane width="6.3" height="0.2" color="#0066CC" position="0 1.9 0" material="side: double; shader: flat"></a-plane>
-                    <a-plane width="6.3" height="0.2" color="#0066CC" position="0 -1.9 0" material="side: double; shader: flat"></a-plane>
-                    <a-plane width="0.2" height="3.8" color="#0066CC" position="-3.05 0 0" material="side: double; shader: flat"></a-plane>
-                    <a-plane width="0.2" height="3.8" color="#0066CC" position="3.05 0 0" material="side: double; shader: flat"></a-plane>
+                <a-entity position="0 0 0.02">
+                    <a-plane width="12.5" height="0.4" color="#0066CC" position="0 3.7 0" material="side: double; shader: flat"></a-plane>
+                    <a-plane width="12.5" height="0.4" color="#0066CC" position="0 -3.7 0" material="side: double; shader: flat"></a-plane>
+                    <a-plane width="0.4" height="7.4" color="#0066CC" position="-6.05 0 0" material="side: double; shader: flat"></a-plane>
+                    <a-plane width="0.4" height="7.4" color="#0066CC" position="6.05 0 0" material="side: double; shader: flat"></a-plane>
                 </a-entity>
                 <a-text value="Welcome!" align="center" color="#0066CC"
-                        width="10" position="0 0.7 0.05" material="shader: flat"></a-text>
+                        width="20" position="0 1.5 0.05" material="shader: flat"></a-text>
                 <a-text id="signboard-coord"
                         value=""
                         align="center"
                         color="#333333"
-                        width="8"
-                        position="0 -0.3 0.05"
+                        width="16"
+                        position="0 -0.5 0.05"
                         material="shader: flat"></a-text>
             </a-entity>
         </a-entity>

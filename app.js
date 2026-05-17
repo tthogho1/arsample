@@ -296,6 +296,25 @@
     // Configure front-mode signboard distance from constant
     signboardFront.setAttribute('position', `0 0 ${-FRONT_DISTANCE_M}`);
 
+    // Rotate only the panel (Y axis) toward the camera each frame.
+    // We avoid `look-at` on the parent because it tilts the pole backward
+    // when the viewer is above (e.g. on a 2nd-floor balcony).
+    const panel = document.getElementById('signboard-panel');
+    const camera = document.querySelector('a-camera');
+    AFRAME.registerComponent('billboard-y', {
+        tick() {
+            if (!panel || !camera) return;
+            if (!signboardGps.getAttribute('visible')) return;
+            const c = camera.object3D.position;
+            const p = signboardGps.object3D.position;
+            const dx = c.x - p.x;
+            const dz = c.z - p.z;
+            const yaw = Math.atan2(dx, dz) * 180 / Math.PI;
+            panel.object3D.rotation.y = yaw * Math.PI / 180;
+        }
+    });
+    document.querySelector('a-scene').setAttribute('billboard-y', '');
+
     refreshDirectionButtons();
     applyMode();
     setupOrientation();
