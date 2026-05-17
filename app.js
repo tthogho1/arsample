@@ -38,6 +38,7 @@
     let lastLat = null;     // Most recent known coordinates (for re-placing)
     let lastLon = null;
     let heading = null;     // Latest compass heading (degrees)
+    let lastAccuracy = 0;   // Latest GPS accuracy in meters
 
     // ---- Helpers ---------------------------------------------------------
 
@@ -133,7 +134,7 @@
         }
         if (lastLat !== null && lastLon !== null) {
             // Refresh info text only (no relocation)
-            updateInfo(lastLat, lastLon, 0);
+            updateInfo(lastLat, lastLon, lastAccuracy);
         }
         updateArrow();
     }
@@ -252,6 +253,7 @@
         navigator.geolocation.watchPosition(
             (pos) => {
                 const { latitude, longitude, accuracy } = pos.coords;
+                lastAccuracy = accuracy;
                 updateInfo(latitude, longitude, accuracy);
                 if (!placed) {
                     placeSignboard(latitude, longitude, 'GPS');

@@ -75,26 +75,35 @@
         </a-camera>
 
         <!-- GPS-placed signboard (positioned dynamically from current location) -->
+        <!-- Geometry is in meters; pole stands on the ground, panel at ~5 m height -->
         <a-entity id="signboard"
                   visible="false"
                   look-at="[gps-new-camera]"
-                  scale="30 30 30">
-            <a-entity mixin="panel" position="0 3 0"></a-entity>
-            <a-entity position="0 3 0.01">
-                <a-entity mixin="frame-h" position="0 1.25 0"></a-entity>
-                <a-entity mixin="frame-h" position="0 -1.25 0"></a-entity>
-                <a-entity mixin="frame-v" position="-2.07 0 0"></a-entity>
-                <a-entity mixin="frame-v" position="2.07 0 0"></a-entity>
+                  scale="1 1 1">
+            <!-- Pole: 4 m tall, standing on the ground (y=0 to y=4) -->
+            <a-box color="#8B5A2B"
+                   width="0.4" depth="0.4" height="4"
+                   position="0 2 0"></a-box>
+            <!-- Panel: 6 m x 3.6 m, centered at y=6 (top of pole + half panel) -->
+            <a-entity position="0 6 0">
+                <a-plane width="6" height="3.6" color="#FFFFFF"
+                         material="side: double; shader: flat"></a-plane>
+                <a-entity position="0 0 0.01">
+                    <a-plane width="6.3" height="0.2" color="#0066CC" position="0 1.9 0" material="side: double; shader: flat"></a-plane>
+                    <a-plane width="6.3" height="0.2" color="#0066CC" position="0 -1.9 0" material="side: double; shader: flat"></a-plane>
+                    <a-plane width="0.2" height="3.8" color="#0066CC" position="-3.05 0 0" material="side: double; shader: flat"></a-plane>
+                    <a-plane width="0.2" height="3.8" color="#0066CC" position="3.05 0 0" material="side: double; shader: flat"></a-plane>
+                </a-entity>
+                <a-text value="Welcome!" align="center" color="#0066CC"
+                        width="10" position="0 0.7 0.05" material="shader: flat"></a-text>
+                <a-text id="signboard-coord"
+                        value=""
+                        align="center"
+                        color="#333333"
+                        width="8"
+                        position="0 -0.3 0.05"
+                        material="shader: flat"></a-text>
             </a-entity>
-            <a-entity mixin="title-text" position="0 3.5 0.05"></a-entity>
-            <a-text id="signboard-coord"
-                    value=""
-                    align="center"
-                    color="#333333"
-                    width="5"
-                    position="0 2.6 0.05"
-                    material="shader: flat"></a-text>
-            <a-entity mixin="pole" position="0 0.5 0"></a-entity>
         </a-entity>
 
     </a-scene>
