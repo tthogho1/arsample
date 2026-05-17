@@ -74,10 +74,11 @@
             </a-entity>
         </a-camera>
 
-        <!-- GPS-placed signboard (positioned dynamically from current location) -->
-        <!-- Oversized + elevated so it's visible from a 2nd-floor balcony too -->
+        <!-- GPS-placed signboard: positioned manually in local meters -->
+        <!-- (we bypass gps-new-entity-place because it depends on the camera's GPS fix) -->
         <a-entity id="signboard"
                   visible="false"
+                  position="0 0 -50"
                   rotation="0 0 0"
                   scale="1 1 1">
             <!-- Pole: 8 m tall -->

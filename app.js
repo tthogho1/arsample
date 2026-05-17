@@ -192,22 +192,26 @@
     /**
      * Place (or re-place) the GPS signboard at SIGNBOARD_DISTANCE_M in the
      * currently selected compass direction from the given coordinates.
+     *
+     * We compute local meters (east, north) ourselves and assign them
+     * directly to the entity's `position`, bypassing AR.js's gps-new-entity-place
+     * (which depends on the camera's GPS fix and is unreliable indoors).
+     *
+     * A-Frame world axes: +X = east, +Y = up, -Z = north (AR.js convention).
      */
     function placeSignboard(lat, lon, sourceLabel) {
         lastLat = lat;
         lastLon = lon;
 
         const vec = DIRECTION_VECTORS[direction];
-        const target = offsetLatLon(
-            lat, lon,
-            vec.north * SIGNBOARD_DISTANCE_M,
-            vec.east * SIGNBOARD_DISTANCE_M
-        );
+        const eastMeters = vec.east * SIGNBOARD_DISTANCE_M;
+        const northMeters = vec.north * SIGNBOARD_DISTANCE_M;
 
-        signboardGps.setAttribute(
-            'gps-new-entity-place',
-            `latitude: ${target.lat}; longitude: ${target.lon}`
-        );
+        // Place in local AR space: +X east, -Z north
+        signboardGps.setAttribute('position', `${eastMeters} 0 ${-northMeters}`);
+
+        // For info display only: also record the equivalent lat/lon
+        const target = offsetLatLon(lat, lon, northMeters, eastMeters);
         coordText.setAttribute(
             'value',
             `${direction} ${SIGNBOARD_DISTANCE_M}m\n${target.lat.toFixed(6)}, ${target.lon.toFixed(6)}`
@@ -217,7 +221,7 @@
         placed = true;
         applyMode();
         updateArrow();
-        console.log(`Signboard placed (${sourceLabel}, dir=${direction}) at`, target);
+        console.log(`Signboard placed (${sourceLabel}, dir=${direction}) local=`, { eastMeters, northMeters });
     }
 
     /** Show the signboard appropriate for the current mode. */
