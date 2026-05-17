@@ -35,3 +35,39 @@ body {
 #mode-toggle:active {
     background: #004c99;
 }
+
+#direction-controls {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.dir-btn {
+    background: #fff;
+    color: #0066cc;
+    border: 2px solid #0066cc;
+    width: 48px;
+    height: 48px;
+    font-family: sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.dir-btn.active {
+    background: #0066cc;
+    color: #fff;
+}
+
+.dir-btn:active {
+    transform: scale(0.95);
+}
