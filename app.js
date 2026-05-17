@@ -32,7 +32,6 @@
 
     // ---- State -----------------------------------------------------------
     let placed = false;     // Has the GPS signboard been placed yet?
-    let arReady = false;    // Has AR.js reported a camera position update?
     let mode = 'gps';       // 'gps' | 'front'
     let direction = 'N';    // 'N' | 'E' | 'S' | 'W'
     let lastLat = null;     // Most recent known coordinates (for re-placing)
@@ -91,7 +90,7 @@
             `Accuracy: ±${accuracy.toFixed(1)}m` +
             headingTxt +
             `<br>Target: ${direction} ${SIGNBOARD_DISTANCE_M}m` +
-            (arReady ? '<br>AR ready' : '<br>AR not ready') +
+            `<br>Mode: heading-based` +
             dbg;
     }
 
@@ -336,9 +335,7 @@
 
     window.addEventListener('load', checkLibraries);
     window.addEventListener('gps-camera-update-position', (e) => {
-        arReady = true;
-        console.log('Camera position:', e.detail.position);
-        if (lastLat !== null) updateInfo(lastLat, lastLon, lastAccuracy);
+        console.log('AR.js camera position update:', e.detail.position);
     });
 
     // Periodic refresh so the 3D debug numbers stay live
